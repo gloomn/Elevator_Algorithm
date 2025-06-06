@@ -1,8 +1,9 @@
 //컴퓨터교육과 이기준
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
-#include <Math.h>
+#include <math.h>
 #include <limits.h>
+#include <stdlib.h>
 #define MAX_PEOPLE 25
 
 
@@ -23,9 +24,13 @@ typedef struct
 
 typedef struct
 {
-	int floor;
+	int user_floor;
+	int going_floor;
 	DIRECTION direction;
 } Request;
+
+int CalculateCost(Elevator* elevator, Request request);
+int AssignedElevator(Request request, Elevator elevator1, Elevator elevator2);
 
 int main(void)
 {
@@ -56,17 +61,19 @@ int main(void)
 	printf("현재 있는 층수와 몇층을 갈 지 입력하시오(현재층수 갈층수) :\n");
 	printf("> ");
 	scanf("%d %d", &user_floor, &going_floor);
-	if (current_floor < going_floor)
+	if (user_floor < going_floor)
 	{
-		request.floor = going_floor;
+		request.user_floor = user_floor;
+		request.going_floor = going_floor;
 		request.direction = UP;
 
 		int assigned = AssignedElevator(request, elevator1, elevator2);
 		printf("엘리베이터 %d번이 요청을 처리합니다.", assigned);
 	}
-	else if (current_floor > going_floor)
+	else if (user_floor > going_floor)
 	{
-		request.floor = going_floor;
+		request.user_floor = user_floor;
+		request.going_floor = going_floor;
 		request.direction = DOWN;
 
 		int assigned = AssignedElevator(request, elevator1, elevator2);
@@ -74,11 +81,12 @@ int main(void)
 	}
 	else
 	{
-		request.floor = going_floor;
+		request.user_floor = user_floor;
+		request.going_floor = going_floor;
 		request.direction = STOPPED;
 		printf("현재 있는 층과 같은 층입니다.");
 	}
-
+	system("pause");
 	return 0;
 }
 
@@ -95,12 +103,12 @@ int CalculateCost(Elevator* elevator, Request request)
 		{
 			if (elevator->door_opened)
 			{
-				cost = abs(elevator->current_floor - request.floor) + 1 + 1; //방향 다르고, door_opend가 true니까 페널티 + 2;
+				cost = abs(elevator->current_floor - request.going_floor) + 1 + 1; //방향 다르고, door_opend가 true니까 페널티 + 2;
 				return cost;
 			}
 			else
 			{
-				cost = abs(elevator->current_floor - request.floor) + 1; //방향 다르고, door_opend이니까 페널티 +1
+				cost = abs(elevator->current_floor - request.going_floor) + 1; //방향 다르고, door_opend이니까 페널티 +1
 				return cost;
 			}
 		}
@@ -108,12 +116,12 @@ int CalculateCost(Elevator* elevator, Request request)
 		{
 			if (elevator->door_opened)
 			{
-				cost = abs(elevator->current_floor - request.floor) + 1; //방향 같고door_opend에 대한 페널티 +1
+				cost = abs(elevator->current_floor - request.going_floor) + 1; //방향 같고door_opend에 대한 페널티 +1
 				return cost;
 			}
 			else
 			{
-				cost = abs(elevator->current_floor - request.floor); //방향 같고, door_opened 아니니니까 페널티 없음
+				cost = abs(elevator->current_floor - request.going_floor); //방향 같고, door_opened 아니니니까 페널티 없음
 				return cost;
 			}
 		}
@@ -132,8 +140,18 @@ int AssignedElevator(Request request, Elevator elevator1, Elevator elevator2)
 {
 	int elevator1_cost = CalculateCost(&elevator1, request) + elevator1.request_count;
 	int elevator2_cost = CalculateCost(&elevator2, request) + elevator2.request_count;
-
 	int moving_elevator = (elevator1_cost <= elevator2_cost) ? elevator1.elevator_number : elevator2.elevator_number;
 
-	return moving_elevator;
+	if (request.user_floor == elevator1.current_floor && request.direction == elevator1.direction && elevator1.door_opened)
+	{
+		return elevator1.elevator_number;
+	}
+	else if (request.user_floor == elevator2.current_floor && request.direction == elevator2.direction && elevator2.door_opened)
+	{
+		return elevator2.elevator_number;
+	}
+	else
+	{
+		return moving_elevator;
+	}
 }
