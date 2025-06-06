@@ -1,4 +1,4 @@
-//202500322 컴퓨터교육과 이기준
+//컴퓨터교육과 이기준
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <Math.h>
